@@ -11,7 +11,7 @@ d_cap = 19.50  # Outer diameter of keycap.
 h_cap = 7.5  # Overall height of keycap.
 t_cap_top = 2  # Thickness of top of keycap.
 t_cap_walls = 1.25  # Thickness of keycap walls
-r_cap_top_fillet = 1.5  # Fillet radius for top edge of keycap.
+r_cap_top_fillet = 2  # Fillet radius for top edge of keycap.
 
 slop_w_shaft = 0  # Increase if stem doesn't fit into switch housing due to width.
 slop_l_shaft = 0  # Increase if stem doesn't fit into switch housing due to length.
@@ -92,6 +92,26 @@ with BuildPart() as cap:
         Rectangle(w_corner_gaps, d_cap, 45)
         mirror()
     extrude(amount=-h_corner_gaps, mode=Mode.SUBTRACT)
+
+# Hollow out the inside circle of the stem base.
+    stem_base = cap.faces().filter_by(Axis.Z).sort_by(Axis.Z)[-3]
+    with BuildSketch(stem_base) as stem_base_hollow_sk:
+        Circle(d_cap / 2 - t_cap_walls)
+    extrude(amount=-(stem_base_height - t_cap_top), mode=Mode.SUBTRACT)
+
+# Fillet from the inside circle of the stem base by 2mm.
+    inside_circle_edge = cap.edges().filter_by_position(Axis.Z, t_cap_top, t_cap_top)[0]  # Filter by Z position
+    print(f"Selected edge for filleting: {inside_circle_edge}")
+    fillet(inside_circle_edge, radius=0.799)
+
+    # Debugging: Print out all edges and their properties
+    print("Edges after hollowing out the stem base:")
+    for i, edge in enumerate(cap.edges()):
+        print(f"Edge {i}: {edge}")
+        print(f"  Length: {edge.length}")
+        print(f"  Position: {edge.position}")
+
+    # Show the final result
 
 show(
     cap,
