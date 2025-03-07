@@ -98,6 +98,13 @@ with BuildPart() as cap:
     # fillet max radius possible
     fillet(stem_top_inner_edges, radius=total_slot_height-0.01)
 
+# This will be relevant for the new stem slot
+                #Line((0, 0), (length, 0))
+                #Line((length, 0), (length, width))
+                #ThreePointArc((length / 2, width * 1.5), (length, width), (0, width))
+                #Line((0, width), (0, 0))
+
+
     #Remove the prebase
     prebase = cap.faces().filter_by(Axis.Z)[0]
     with BuildSketch(prebase):
@@ -149,23 +156,42 @@ with BuildPart() as plus:
         Rectangle(width=1.17, height=l_stem, align=(Align.CENTER, Align.CENTER))
     extrude(amount=t_cap_top+stem_base_height+4)    
     
+BaseZ = -15.5
+arc_start_x = -3
+arc_end_x = 0
+arc_height_z = -17
+#MiddleX = StartX-((StartX+EndX)/2)
+
+#Add Rectangle to the top of the keycap height of t_cap_top and width of d_cap
+with BuildPart() as cap_top:    
+        Box(30, 15.5, 1 , align=(Align.MAX, Align.CENTER))
+        plane = Plane(cap_top.faces().group_by(Axis.Y)[0][0])
+        #with BuildSketch(plane) as sk:
+        with BuildSketch(plane) as sk:
+            with BuildLine(plane) as arc_ln:
+                Line((arc_start_x, BaseZ), (arc_end_x, BaseZ))
+                ThreePointArc((arc_end_x, BaseZ), ((arc_start_x + arc_end_x) / 2, arc_height_z), (arc_start_x, BaseZ))
+            make_face()
+        extrude(amount=-15.5)
+        
+        #extrude(amount=-19.5)
 
 
-    
+    # Combine parts into a single compound shape
 
+combined_part = Compound([cap.part, cap_top.part])
 
-    
     
 
     # Show the final result
-    show(
-        cap, #stem_base, #plus,
+show(
+        cap, cap_top, #stem_base, #plus,
         # stem_top_inner_edges,
         colors=["magenta"],
         # transparent=True,
     )
 
-    export_step(cap.part, "NoCap.step")
-    export_stl(cap.part, "NoCap.stl")
+export_step(combined_part, "NoCap.step")
+export_stl(combined_part, "NoCap.stl")
 
 # %%
