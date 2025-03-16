@@ -57,24 +57,18 @@ with BuildPart() as cap:
         Circle(d_cap / 2 - t_cap_walls)
     extrude(amount=-(h_cap - t_cap_top), mode=Mode.SUBTRACT)
 
-    # Debugging: Print out all edges and their properties
-#     print("Edges after hollowing out the keycap:")
-#     for i, edge in enumerate(cap.edges()):
-#             print(f"Edge {i}: {edge}")
-#             print(f"geometry type: {edge.geom_type}")
-#             print(f"  Length: {edge.length}")
-#             print(f"  Position: {edge.position}")
+    
 
 
 #Add stem_base
     stem_base = cap.faces().filter_by(Axis.Z)[-1]
     with BuildSketch(stem_base) as stem_base_sk:
-        Rectangle(width=w_shaft, height=w_shaft, align=(Align.CENTER, Align.CENTER))
+        Rectangle(width=l_shaft, height=w_shaft, align=(Align.CENTER, Align.CENTER))
     extrude(amount=stem_base_height)
     
 
     #define stem_badge_edges which are the edges where the length = w_shaft and Z = 2
-    stem_base_edges = [edge for edge in cap.edges() if edge.length == w_shaft and edge.position.Z == 2] 
+    stem_base_edges = [edge for edge in cap.edges() if edge.length == w_shaft and edge.position.Z == 2 or edge.length == l_shaft and edge.position.Z == 2] 
     #fillet
     fillet(stem_base_edges, radius=stem_base_height_fillet)
     
@@ -88,103 +82,39 @@ with BuildPart() as cap:
     
     
     Stempartthickness = (w_shaft-t_stem)/2
-    topwidth = 0.3
+    topwidth = 0.7
     arc_start_x = (t_stem/2)+0.1
-    arc_end_x = w_shaft/2
-    middle_X = ((arc_start_x + arc_end_x) / 1.9)+topwidth
+    arc_end_x = l_shaft/2
+    middle_X = ((arc_start_x + arc_end_x) / 2)+topwidth
     
     minus_arc_start_x = arc_start_x*-1
     minus_arc_end_x = arc_end_x*-1
     minus_middle_X = (middle_X-topwidth)*-1
     
     BaseZ = 2.8
-    arc_height_z = 1
+    arc_height_z = 0.8
     middle_z =2.6
 
     
     cap_top_inside = cap.faces().filter_by(Axis.Y)[-1]
     with BuildSketch(cap_top_inside.offset(0)) as stem_sk:
         with BuildLine(cap_top_inside) as stem_ln:
-            Line ((arc_end_x, BaseZ), (arc_start_x, BaseZ))
+            Line ((arc_end_x-0.2, BaseZ), (arc_start_x, BaseZ))
             Line ((arc_start_x, BaseZ), (arc_start_x, arc_height_z))
             Line ((arc_start_x,arc_height_z), (arc_start_x+topwidth, arc_height_z))
-            ThreePointArc((arc_start_x+topwidth, arc_height_z), (middle_X, middle_z), (arc_end_x, BaseZ))
-          
-          #Line ((arc_end_x, BaseZ), (minus_arc_end_x, BaseZ))
-         
-         # Line ((minus_arc_start_x, BaseZ), (arc_start_x, BaseZ))
-          #Line ((arc_start_x, BaseZ), (arc_start_x, arc_height_z))
-          #Line ((arc_start_x,arc_height_z), (arc_start_x+topwidth, arc_height_z))
-          #ThreePointArc((arc_start_x+topwidth, arc_height_z), (middle_X, middle_z), (arc_end_x, BaseZ))            
-        
-            
+            ThreePointArc((arc_start_x+topwidth, arc_height_z), (middle_X-0.1, middle_z), (arc_end_x-0.2, BaseZ))
         make_face()
         with BuildLine(cap_top_inside) as stem_ln:
             Line ((minus_arc_end_x, BaseZ), (minus_arc_end_x, arc_height_z))
-            ThreePointArc((minus_arc_end_x, arc_height_z), (minus_middle_X, middle_z-1.25), (minus_arc_start_x, BaseZ))
-         # Line ((minus_arc_start_x, BaseZ), (arc_start_x, BaseZ))
+            Line ((minus_arc_end_x,arc_height_z), (minus_arc_end_x+topwidth,arc_height_z))
+            ThreePointArc((minus_arc_end_x+topwidth, arc_height_z), (minus_middle_X+(topwidth/2), middle_z-1.25), (minus_arc_start_x, BaseZ))
             Line ((minus_arc_start_x, BaseZ), (minus_arc_end_x, BaseZ))
         make_face()
     extrude(amount=-Stempartthickness)
     mirror(about=Plane.XZ)
 
-    topwidth = 0.3
-    xOffset = t_stem
-    #-6.06-(t_stem/2)
-    #-w_shaft+0.105+(t_stem/2)
-
-    arc_start_x = (t_stem/2)+xOffset
-    arc_end_x = (w_shaft/2)+xOffset
-    middle_X = ((arc_start_x + arc_end_x) / 1.9)
-
-    zoffset = 0.3907
-    
-    arc_height_z = 1.8+zoffset
-    BaseZ = 0+zoffset
-    middle_z =1.6+zoffset
-
-    #Create second part of the stem slot on the negative X axis which is a mirror of the first part but upside down
-   # cap_top_inside2 = cap.faces().filter_by(Axis.Y)[-3]
- #   with BuildSketch(cap_top_inside2) as stem_sk:
-  #      with BuildLine(cap_top_inside2) as stem_ln:
-   #         Line ((arc_end_x, BaseZ), (arc_start_x, BaseZ))
-   #         Line ((arc_start_x, BaseZ), (arc_start_x, arc_height_z))
-   #         ThreePointArc((arc_start_x, arc_height_z), (middle_X, middle_z), (arc_end_x, BaseZ))
-   #     make_face()
-   # extrude(amount=-Stempartthickness)
-   # mirror(about=Plane.XZ)
-
-    
-  #  with BuildSketch(cap_top_inside.offset(-w_shaft+Stempartthickness)) as stem_sk2:
-  #      with BuildLine(cap_top_inside) as stem_ln:
-  #          Line((arc_start_x, BaseZ), (arc_end_x, BaseZ))
-  #          Line ((arc_end_x, BaseZ), (arc_end_x, arc_height_z))
-  #          ThreePointArc((arc_start_x, BaseZ), ((arc_start_x + arc_end_x) / 2, middle_z), (arc_end_x, arc_height_z))
-  #      make_face()
-  #  extrude(amount=-Stempartthickness)
-
-    # Fillet inside edges of the stem slot which have 1.565 length on Z 2.0 and X on 1.075
-    # stem_top_inner_edges = [edge for edge in cap.edges() if edge.position.Z == t_cap_top and abs(edge.length - 1.515) < 0.01 and edge.position.X < 1]
-    
-    # fillet max radius possible
-    # fillet(stem_top_inner_edges, radius=total_slot_height-0.01)
-
-# This will be relevant for the new stem slot
-                #Line((0, 0), (length, 0))
-                #Line((length, 0), (length, width))
-                #ThreePointArc((length / 2, width * 1.5), (length, width), (0, width))
-                #Line((0, width), (0, 0))
 
 
-    
-    #Create second part of the stem slot on the negative X axis
-    #cap_top_inside2 = cap.faces().filter_by(Axis.Z)[-2]
-    #with BuildSketch(cap_top_inside2) as stem_sk:     
-      #  Rectangle(width=w_shaft / 2, height=w_shaft, align=(Align.MAX, Align.CENTER))
-      #  Rectangle(width=(t_stem-slop_t_stem)*2, height=w_shaft, mode=Mode.SUBTRACT, align=(Align.CENTER, Align.CENTER))
-      #  Rectangle(width=w_shaft, height=t_stem, mode=Mode.SUBTRACT, align=(Align.MAX, Align.CENTER))
-    #extrude(amount=total_slot_height)
-    
 
 
 # Calculate the circumference of the inside circle
@@ -194,6 +124,23 @@ with BuildPart() as cap:
     inside_circle_edge = next(edge for edge in cap.edges() if edge.position.Z == t_cap_top and abs(edge.length - inside_circle_circumference) < 0.01)
     #print(f"Selected edge for filleting: {inside_circle_edge}")
 #    fillet(inside_circle_edge, radius=2)
+
+
+
+# Debugging: Print out all edges and their properties
+    print("Edges after hollowing out the keycap:")
+    print(Stempartthickness)
+    for i, edge in enumerate(cap.edges()):
+            print(f"Edge {i}: {edge}")
+            print(f"geometry type: {edge.geom_type}")
+            print(f"  Length: {edge.length}")
+            print(f"  Position: {edge.position}")
+
+    # Fillet inside edges of the stem slot which have 1.565 length on Z 2.0 and X on 1.075
+    stem_top_inner_edges = [edge for edge in cap.edges() if edge.position.Z < (1) and edge.length == Stempartthickness ] #and edge.position.X < 1]
+    
+    # fillet max radius possible
+    fillet(stem_top_inner_edges, radius=0.2)    
 
 
  #Build a base for the stem to sit on.
@@ -248,7 +195,7 @@ show(
         # transparent=True,
     )
 
-export_step(combined_part, "NoCap.step")
-export_stl(combined_part, "NoCap.stl")
+#export_step(combined_part, "NoCap.step")
+#export_stl(combined_part, "NoCap.stl")
 
 # %%
